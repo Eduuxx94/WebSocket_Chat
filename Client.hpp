@@ -3,7 +3,6 @@
 #include <iostream>
 #include <sys/socket.h>
 
-
 using String = std::string;
 
 class Client {

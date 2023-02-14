@@ -1,36 +1,29 @@
 //Example code: A simple server side code, which echos back the received message.
 //Handle multiple socket connections with select and fd_set on Linux
-#include <stdio.h>
-#include <string.h> //strlen
-#include <stdlib.h>
+#include <iostream>
+#include <sys/socket.h>
 #include <errno.h>
 #include <unistd.h> //close
 #include <arpa/inet.h> //close
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
 #include <sys/time.h> //FD_SET, FD_ISSET, FD_ZERO macros
 #include "Client.hpp"
-	
-#define TRUE 1
-#define FALSE 0
+
 #define PORT 8888
 
-int opt = TRUE;
-int master_socket , addrlen , new_socket , client_socket[30], max_clients = 30 , activity, i , valread , sd;
+int opt = true;
+int master_socket , addrlen , new_socket , client_socket[30], max_clients = 30 , activity, valread , sd;
 int max_sd;
-struct sockaddr_in address;
+struct sockaddr_in address; //Structure describing an Internet socket address.
 Client	clients[30];
 
-    
 char buffer[1025]; 
 fd_set readfds;
-    
-char *message = "Welcome to chatSocket\nUse --option: message\n Option:\n\t--Loggin: Your \"NickName\"\r\n";
+
+std::string message = "Welcome to chatSocket\nUse --option: message\n Option:\n\t--nickname \"CustomNickName\"\r\n";
 
 void    notify_all(int sender, String message){
 	Client	forSender = clients[sender];
-	std::cout << sender << std::endl;
+	std::cout << "Client " << sender << " sent a message" << std::endl;
 	clients[sender].readMessage(message);
     for (int i = 0; i < max_clients; i++){
         Client forReceiver = clients[i];
@@ -38,9 +31,9 @@ void    notify_all(int sender, String message){
 			forReceiver.sendMessage(forSender, message);
     }
 }
-auto lambda1 = [](String nickname) { std::cout << nickname << std::endl; };
+
 int main(int argc , char *argv[])
-{		
+{
 	if( (master_socket = socket(AF_INET , SOCK_STREAM , 0)) == 0){
 		perror("socket failed");
 		exit(EXIT_FAILURE);
@@ -68,12 +61,12 @@ int main(int argc , char *argv[])
 	addrlen = sizeof(address);
 	puts("Waiting for connections ...");
 		
-	while(TRUE){
+	while(true){
 		FD_ZERO(&readfds);
 		FD_SET(master_socket, &readfds);
 		max_sd = master_socket;
 			
-		for ( i = 0 ; i < max_clients ; i++){
+		for (int i = 0 ; i < max_clients ; i++){
 			sd = client_socket[i];
 				
 			if(sd > 0)
@@ -95,21 +88,21 @@ int main(int argc , char *argv[])
 			}
 			clients[new_socket].init(new_socket);
 			printf("New connection , socket fd is %d , ip is : %s , port : %d \n" , new_socket , inet_ntoa(address.sin_addr) , ntohs(address.sin_port));
-			if( send(new_socket, message, strlen(message), 0) != strlen(message) ){
+			if( send(new_socket, message.c_str(), message.length(), 0) != message.length()){
 				perror("send");
 			}
 			puts("Welcome message sent successfully");
-			for (i = 0; i < max_clients; i++){
+			for (int i = 0; i < max_clients; i++){
 				if( client_socket[i] == 0 ){
 					client_socket[i] = new_socket;
-					printf("Adding to list of sockets as %d\n" , i);	
+					printf("Adding to list of sockets as %d\n" , i);
 					break;
 				}
 			}
 		}
-		for (i = 0; i < max_clients; i++){
+		for (int i = 0; i < max_clients; i++){
 			sd = client_socket[i];
-			
+
 			if (FD_ISSET( sd , &readfds)){
 				if ((valread = read( sd , buffer, 1024)) == 0){
 					getpeername(sd , (struct sockaddr*)&address , \

@@ -42,7 +42,7 @@ void    Client::readMessage(String message) {
         if (message.length() > 14) {
             this->name = message.substr(11, message.length());
             this->name = name.erase(name.length() - 1);
-            std::cout << this->socket << " Updated the name for: " << this->name << std::endl;
+            std::cout << "Client " << this->socket << " Updated the name for: " << this->name << std::endl;
         }
     }
 }
